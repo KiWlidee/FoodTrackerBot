@@ -1,0 +1,6 @@
+.env
+venv
+*__pycache__
+debug.log
+data.db
+support_requests.txt
