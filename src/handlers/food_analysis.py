@@ -78,7 +78,8 @@ async def analysis(message: Message):
     thinking = await message.answer("⏳ Считаю...")
     answer = await ask_ai(message.text)
     await thinking.delete()
-    await message.answer(answer)
+    await message.answer(answer,
+                         reply_markup=kb.start_menu)
 
 
 @router.message(F.photo)

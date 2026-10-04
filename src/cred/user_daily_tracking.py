@@ -12,6 +12,32 @@ from models.users import UsersOrm
 from models.user_daily_tracking import Tracking
 
 
+async def make_new_stat(
+        message: Message,
+        water_ml: float= 0,
+        calories: float= 0,
+        protein: float= 0,
+        fat: float= 0,
+        carbs: float= 0,
+):
+    async with async_session() as session:
+        try:
+            stmt = Tracking(
+                tg_id=message.from_user.id,
+                water_ml=water_ml,
+                calories=calories,
+                protein=protein,
+                fat=fat,
+                carbs=carbs
+            )
+            session.add(stmt)
+            await session.commit()
+            return {"status": "OK"}
+        except Exception as e:
+            logging.error(e)
+            return {"status": "ERROR"}
+
+
 async def add_water(message: Message):
     async with async_session() as session:
         try:
@@ -46,3 +72,41 @@ async def kbzhu_stats(message: Message, day: date):
         kbzhu = Tracking(tg_id=message.from_user.id, day=day, water_ml=0)
         session.add(kbzhu)
         await session.commit()
+
+
+async def kbzhu_one_edit(message: Message, stat: Tracking, day: date):
+    user_stat = message.text
+    if user_stat.isdigit() or user_stat[0] == "-" and user_stat[1:].isdigit():
+        user_stat = float(user_stat)
+        async with async_session() as session:
+            try:
+                stmt = select(Tracking).filter_by(tg_id=message.from_user.id, day=day)
+                res = await session.execute(stmt)
+                result = res.scalar_one_or_none()
+                if result:
+                    if stat == "water":
+                        result.water_ml += user_stat
+                    elif stat == "calories":
+                        result.calories += user_stat
+                    elif stat == "protein":
+                        result.protein += user_stat
+                    elif stat == "fat":
+                        result.fat += user_stat
+                    elif stat == "carbs":
+                        result.carbs += user_stat
+                    await session.commit()
+                    return {"status": "OK"}
+                else:
+                    new_stat = await make_new_stat(
+                        message,
+                        water_ml=0,
+                        calories=0,
+                        protein=0,
+                        fat=0,
+                        carbs=0
+                    )
+                    return {"status": "New Purpose"}
+            except Exception as e:
+                logging.error(e)
+                return {"status": "ERROR"}
+    return {"status": "Не соответствие стандарту"}

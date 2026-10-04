@@ -15,6 +15,7 @@ async def main():
     logging.basicConfig(level=logging.INFO, encoding="utf-8",
                         handlers=[logging.FileHandler("debug.log", encoding="utf-8"),
                                   logging.StreamHandler(stdout)])
+    logging.getLogger("aiogram").setLevel(logging.WARNING)
     bot = Bot(token=config.BOT_TOKEN)
     dp = Dispatcher()
     dp.include_router(main_router)
