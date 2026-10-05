@@ -22,7 +22,7 @@ async def find_user_by_tg_id(message: Message):
 async def add_new_user(message: Message):
     async with async_session() as session:
         username = f"@{message.from_user.username}" if message.from_user.username else None
-        user = UsersOrm(tg_id=message.from_user.id, username=f"{username}")
+        user = UsersOrm(tg_id=message.from_user.id, username=username)
         session.add(user)
         await session.commit()
         logging.info(f"Добавлен новый пользователь: {username}, ID: {message.from_user.id}")

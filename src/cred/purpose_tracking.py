@@ -1,15 +1,10 @@
 import logging
 
-import datetime
-from datetime import date
-
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from sqlalchemy import select
 
 from database import async_session
-from models.users import UsersOrm
 from models.user_daily_tracking import Tracking
 from models.purpose_tracking import Purpose
 
@@ -34,9 +29,10 @@ async def make_purpose(
             )
             session.add(stmt)
             await session.commit()
+            logging.debug(f"{message.from_user.id} новая таблица цели (cred.purpose_traking.make_purpose)")
             return {"status": "OK"}
         except Exception as e:
-            logging.error(e)
+            logging.error(f"{e} (cred.purpose_traking.make_purpose)")
             return {"status": "ERROR"}
 
 
@@ -47,12 +43,14 @@ async def find_purpose(message: Message):
             res = await session.execute(stmt)
             result = res.scalar_one_or_none()
             if result:
+                logging.debug(f"{message.from_user.id} найдена цель {result} (cred.purpose_traking.find_purpose)")
                 return result
             else:
                 new_purpose = await make_purpose(message)
+                logging.debug(f"{message.from_user.id} цель не найдена (cred.purpose_traking.find_purpose)")
                 return {"status": "Not Found"}
         except Exception as e:
-            logging.error(e)
+            logging.error(f"{e} (cred.purpose_traking.make_purpose)")
             return {"status": "ERROR"}
 
 
@@ -76,6 +74,7 @@ async def edit_one_purpose(message: Message, purpose: Purpose):
                     elif purpose == "carbs":
                         result.carbs = user_purpose
                     await session.commit()
+                    logging.debug(f"{message.from_user.id} изменил свою цель ({user_purpose}) (cred.purpose_traking.edit_one_purpose)")
                     return {"status": "OK"}
                 else:
                     new_purpose = await make_purpose(
@@ -86,8 +85,9 @@ async def edit_one_purpose(message: Message, purpose: Purpose):
                         fat=0,
                         carbs=0
                     )
+                    logging.debug(f"{message.from_user.id} создал новую таблицу целей (cred.purpose_traking.edit_one_purpose)")
                     return {"status": "New Purpose"}
             except Exception as e:
-                logging.error(e)
+                logging.error(f"{e} (cred.purpose_traking.edit_one_purpose)")
                 return {"status": "ERROR"}
     return {"status": "Не соответствие стандарту"}

@@ -8,7 +8,6 @@ from aiogram.types import Message
 from sqlalchemy import select
 
 from database import async_session
-from models.users import UsersOrm
 from models.user_daily_tracking import Tracking
 
 
@@ -32,9 +31,11 @@ async def make_new_stat(
             )
             session.add(stmt)
             await session.commit()
+            logging.debug(
+                f"{message.from_user.id} создал новую таблицу целей (cred.user_daily_traking.make_new_stat)")
             return {"status": "OK"}
         except Exception as e:
-            logging.error(e)
+            logging.error(f"{e} (cred.user_daily_traking.make_new_stat)")
             return {"status": "ERROR"}
 
 
@@ -64,14 +65,24 @@ async def add_water(message: Message):
 
 async def kbzhu_stats(message: Message, day: date):
     async with async_session() as session:
-        stmt = select(Tracking).filter_by(tg_id=message.from_user.id, day=day)
-        res = await session.execute(stmt)
-        result = res.scalars().all()
-        if result:
-            return result[0]
-        kbzhu = Tracking(tg_id=message.from_user.id, day=day, water_ml=0)
-        session.add(kbzhu)
-        await session.commit()
+        try:
+            stmt = select(Tracking).filter_by(tg_id=message.from_user.id, day=day)
+            res = await session.execute(stmt)
+            result = res.scalars().all()
+            if result:
+                logging.debug(
+                    f"{message.from_user.id} найдена статистика по КБЖУ {result[0]} (cred.user_daily_traking.kbzhu_stats)"
+                )
+                return result[0]
+            kbzhu = Tracking(tg_id=message.from_user.id, day=day, water_ml=0)
+            session.add(kbzhu)
+            await session.commit()
+            logging.debug(
+                f"{message.from_user.id} создана новая статистика по КБЖУ (cred.user_daily_traking.kbzhu_stats)"
+            )
+        except Exception as e:
+            logging.error(f"{e} (cred.user_daily_traking.kbzhu_stats)")
+            return {"status": "ERROR"}
 
 
 async def kbzhu_one_edit(message: Message, stat: Tracking, day: date):
@@ -95,6 +106,9 @@ async def kbzhu_one_edit(message: Message, stat: Tracking, day: date):
                     elif stat == "carbs":
                         result.carbs += user_stat
                     await session.commit()
+                    logging.debug(
+                        f"{message.from_user.id} добавил {user_stat} в {stat} (cred.user_daily_traking.kbzhu_one_edit)"
+                                  )
                     return {"status": "OK"}
                 else:
                     new_stat = await make_new_stat(
@@ -105,8 +119,10 @@ async def kbzhu_one_edit(message: Message, stat: Tracking, day: date):
                         fat=0,
                         carbs=0
                     )
+                    logging.debug(
+                        f"{message.from_user.id} создал новую таблицу целей (cred.user_daily_traking.kbzhu_one_edit)")
                     return {"status": "New Purpose"}
             except Exception as e:
-                logging.error(e)
+                logging.error(f"{e} (cred.user_daily_traking.kbzhu_one_edit)")
                 return {"status": "ERROR"}
     return {"status": "Не соответствие стандарту"}
