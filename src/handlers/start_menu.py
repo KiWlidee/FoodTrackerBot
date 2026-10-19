@@ -6,6 +6,8 @@ from aiogram.filters import Command
 
 import cred.users as cred_users
 import keyboards.start_menu as kb
+import keyboards.admin as adm_kb
+import config
 
 
 router = Router()
@@ -13,6 +15,10 @@ router = Router()
 
 @router.message(Command("start"))
 async def start_menu(message: Message):
+    if int(config.ADMIN_TG_ID) == message.from_user.id:
+        await message.answer("😎 Ты просто босс, просто начальник",
+                             reply_markup=adm_kb.admin_start_menu)
+        return
     user = await cred_users.find_user_by_tg_id(message)
     if not user:
         await cred_users.add_new_user(message)

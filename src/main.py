@@ -15,14 +15,16 @@ def setup_logging():
     )
 
     root = logging.getLogger()
-    root.setLevel(logging.INFO)
+    root.setLevel(logging.DEBUG)
 
     file_handler = logging.FileHandler("debug.log", encoding="utf-8")
     file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.INFO)
     root.addHandler(file_handler)
 
     console_handler = logging.StreamHandler(stdout)
     console_handler.setFormatter(formatter)
+    console_handler.setLevel(logging.DEBUG)
     root.addHandler(console_handler)
 
     aiogram_logger = logging.getLogger("aiogram")
@@ -32,6 +34,9 @@ def setup_logging():
     aiogram_console = logging.StreamHandler(stdout)
     aiogram_console.setFormatter(formatter)
     aiogram_logger.addHandler(aiogram_console)
+
+    for noisy in ("aiosqlite", "httpcore", "httpx", "openai"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
 async def main():

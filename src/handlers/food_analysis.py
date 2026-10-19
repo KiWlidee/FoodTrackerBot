@@ -1,4 +1,5 @@
 import logging
+
 from datetime import date, timedelta, datetime
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from aiogram.fsm.state import State, StatesGroup
 import cred.user_daily_tracking as tracking_cred
 import cred.photo_analysis as photo_analysis
 import keyboards.start_menu as kb
+
 from ai import ask_ai
 from database import async_session
 

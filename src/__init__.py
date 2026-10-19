@@ -5,9 +5,11 @@ from handlers.food_analysis import router as food_analysis_router
 from handlers.purpose import router as purpose_menu_router
 from handlers.support import router as support_router
 from handlers.kbzhu import router as kbzhu_menu_router
+from handlers.admin_panel import router as admin_panel_router
 
 main_router = Router()
 
+main_router.include_router(admin_panel_router)
 main_router.include_router(start_menu_router)
 main_router.include_router(purpose_menu_router)
 main_router.include_router(support_router)

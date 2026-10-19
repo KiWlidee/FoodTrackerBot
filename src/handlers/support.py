@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime
 
 from aiogram import Router, F
@@ -19,12 +21,18 @@ class Wait(StatesGroup):
 
 @router.message(F.text == "🆘 Поддержка")
 async def support(message: Message):
+    logging.debug(
+        f"{message.from_user.id} Нажал на: 🆘 Поддержка (handlers.support.support)"
+    )
     await message.answer("Если вы нашли баг или у вас есть важные вопросы, вы можете написать в поддержку.",
                          reply_markup=sup_kb.support)
 
 
 @router.message(F.text == "📝 Написать")
 async def write_support(message: Message, state: FSMContext):
+    logging.debug(
+        f"{message.from_user.id} пробует написать в поддержку (handlers.support.write_support)"
+    )
     await message.answer("Напишите ваше обращение",
                          reply_markup=ReplyKeyboardRemove())
     await state.set_state(Wait.waiting_support)
@@ -33,6 +41,9 @@ async def write_support(message: Message, state: FSMContext):
 @router.message(Wait.waiting_support)
 async def waiting_support(message: Message, state: FSMContext):
     if len(message.text) > 300:
+        logging.debug(
+            f"{message.from_user.id} превысил длину сообщения в поддержку (handlers.support.waiting_support)"
+        )
         await message.answer("Превышена максимальная длина сообщения",
                              reply_markup=kb.start_menu)
         await state.clear()
@@ -55,6 +66,9 @@ async def waiting_support(message: Message, state: FSMContext):
     with open(file_path, "a", encoding="utf-8") as f:
         f.write(entry)
 
+    logging.info(
+        f"{message.from_user.id} написал в поддержку (handlers.support.waiting_support)"
+    )
     await message.answer("✅ Ваше обращение принято! Мы свяжемся с вами.",
                          reply_markup=kb.start_menu)
     await state.clear()
